@@ -17,8 +17,9 @@ class TimePicker extends Component {
     const interval = maxHour / hourInterval;
     for (let i = 0; i <= interval; i++) {
       const value = `${i * hourInterval}`;
+      const new_value = value < 10 ? `0${value}` : `${value}`;
       const item = (
-        <Picker.Item key={value} value={value} label={value + hourUnit} />
+        <Picker.Item key={value} value={new_value} label={new_value + hourUnit} />
       );
       items.push(item);
     }
@@ -26,6 +27,7 @@ class TimePicker extends Component {
   };
 
   getMinuteItems = () => {
+    console.log('getMinuteItems')
     const items = [];
     const { maxMinute, minuteInterval, minuteUnit } = this.props;
     const interval = maxMinute / minuteInterval;
@@ -41,10 +43,18 @@ class TimePicker extends Component {
       );
       items.push(item);
     }
+    const extra = this.props.extraMinuteItems(this.state.selectedHour,this.state.selectedMinute)
+    if(extra){
+      extra.map(minuteItem=>{
+        items.push(minuteItem)
+      })
+    }
+    
     return items;
   };
 
   onValueChange = (selectedHour, selectedMinute) => {
+    let items = []
     this.setState({ selectedHour, selectedMinute });
   };
 
@@ -71,14 +81,18 @@ class TimePicker extends Component {
   };
 
   renderHeader = () => {
-    const { textCancel, textConfirm } = this.props;
+    const { textCancel, textConfirm, textTitle } = this.props;
     return (
       <View style={styles.header}>
         <TouchableOpacity onPress={this.onCancel} style={styles.buttonAction}>
-          <Text style={[styles.buttonText, styles.buttonTextCancel]}>
+          <Text style={[styles.buttonText]}>
             {textCancel}
           </Text>
         </TouchableOpacity>
+        {textTitle &&
+          <View style={styles.buttonAction}>
+            <Text style={[styles.buttonText, {color:'black', fontWeight:'500'}]}>{textTitle}</Text>
+          </View>}
         <TouchableOpacity onPress={this.onConfirm} style={styles.buttonAction}>
           <Text style={styles.buttonText}>{textConfirm}</Text>
         </TouchableOpacity>
@@ -88,6 +102,7 @@ class TimePicker extends Component {
 
   renderBody = () => {
     const { selectedHour, selectedMinute } = this.state;
+    
     return (
       <View style={styles.body}>
         <Picker
@@ -109,6 +124,7 @@ class TimePicker extends Component {
             this.onValueChange(selectedHour, itemValue)
           }
         >
+          {/* {this.props.getMinuteItems?this.props.getMinuteItems():this.getMinuteItems()} */}
           {this.getMinuteItems()}
         </Picker>
       </View>
@@ -141,6 +157,7 @@ TimePicker.propTypes = {
   itemStyle: PropTypes.object,
   textCancel: PropTypes.string,
   textConfirm: PropTypes.string,
+  textTitle: PropTypes.string,
   onCancel: PropTypes.func,
   onConfirm: PropTypes.func
 };
@@ -156,7 +173,8 @@ TimePicker.defaultProps = {
   selectedMinute: "00",
   itemStyle: {},
   textCancel: "Cancel",
-  textConfirm: "Done"
+  textConfirm: " Done ",
+  textTitle: null
 };
 
 export default TimePicker;

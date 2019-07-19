@@ -16,9 +16,9 @@ const styles = StyleSheet.create({
     justifyContent: "center"
   },
   buttonText: {
-    fontSize: 20,
+    fontSize: 18,
     color: "#006BFF",
-    fontWeight: "500"
+    fontWeight: "400"
   },
   buttonTextCancel: {
     color: "#666",
