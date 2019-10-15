@@ -1,3 +1,3 @@
-import TimePicker from "./src";
+import TimePicker from "./src/TimePicker";
 
 export default TimePicker;
