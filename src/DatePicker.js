@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Picker, Text, TouchableOpacity, View } from 'react-native';
+import { Picker, Text, TouchableHighlight, View } from 'react-native';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import styles from './styles';
+import Moment from 'moment';
 
 const monthList = [
   'January',
@@ -24,8 +25,8 @@ const monthList = [
 class DatePicker extends Component {
   constructor (props) {
     super(props);
-    const { selectedHour, selectedMinute, selectedDay, selectedMonth, selectedYear } = props;
-    this.state = { selectedHour, selectedMinute, selectedDay, selectedMonth, selectedYear };
+    const { selectedDay, selectedMonth, selectedYear, date } = props;
+    this.state = { selectedDay, selectedMonth, selectedYear, date };
   }
 
   selectedMonthHaveDay = (day) => {
@@ -37,6 +38,7 @@ class DatePicker extends Component {
       const { selectedMonth, selectedYear } = this.state;
       return this.isValid(day, parseInt(selectedMonth), parseInt(selectedYear));
     }
+
   };
   daysInMonth = (m, y) => { // m is 1 indexed: 1-12
     switch (m) {
@@ -74,9 +76,10 @@ class DatePicker extends Component {
     const { maxMonth, monthInterval, monthUnit } = this.props;
     const interval = maxMonth / monthInterval;
     for (let i = 1; i <= interval; i++) {
-      const value = monthList[i - 1 * monthInterval];
+      const monthIndex = (i - 1) * monthInterval;
+      const value = monthList[monthIndex];
       const item = (
-          <Picker.Item key={value} value={value}
+          <Picker.Item key={value} value={i.toString()}
                        label={value + monthUnit}/>
       );
       items.push(item);
@@ -105,18 +108,30 @@ class DatePicker extends Component {
     this.setState({ selectedDay, selectedMonth, selectedYear });
   };
 
+  getDate = () => {
+    const { selectedDay, selectedMonth, selectedYear } = this.state;
+    return Moment(selectedDay + '/' + selectedMonth + '/' + selectedYear, 'DD/MM/YYYY').format(this.props.format);
+  };
+
   onCancel = () => {
     if (typeof this.props.onCancel === 'function') {
-      const { selectedHour, selectedMinute } = this.state;
-      this.props.onCancel(selectedHour, selectedMinute);
+      this.props.onCancel(this.getDate());
     }
+    this.close();
   };
 
   onConfirm = () => {
-    if (typeof this.props.onConfirm === 'function') {
-      const { selectedHour, selectedMinute } = this.state;
-      this.props.onConfirm(selectedHour, selectedMinute);
-    }
+    const date = this.getDate();
+    this.setState({ date }, () => {
+      if (typeof this.props.onConfirm === 'function') {
+        this.props.onConfirm(date);
+      }
+      this.close();
+    });
+    // if (typeof this.props.onConfirm === 'function') {
+    //     this.props.onConfirm(date);
+    // }
+    // this.close();
   };
 
   close = () => {
@@ -128,24 +143,25 @@ class DatePicker extends Component {
   };
 
   renderHeader = () => {
-    const { textCancel, textConfirm, textTitle } = this.props;
+    const { confirmBtnText, cancelBtnText, textTitle, TouchableComponent } = this.props;
     return (
         <View style={styles.header}>
-          <TouchableOpacity onPress={this.onCancel} style={styles.buttonAction}>
+          <TouchableComponent underlayColor={'transparent'} onPress={this.onCancel} style={styles.buttonAction}>
             <Text style={[styles.buttonText]}>
-              {textCancel}
+              {cancelBtnText}
             </Text>
-          </TouchableOpacity>
+          </TouchableComponent>
           {textTitle &&
           <View style={styles.buttonAction}>
             <Text style={[
               styles.buttonText,
               { color: 'black', fontWeight: '500' }]}>{textTitle}</Text>
           </View>}
-          <TouchableOpacity onPress={this.onConfirm}
-                            style={styles.buttonAction}>
-            <Text style={styles.buttonText}>{textConfirm}</Text>
-          </TouchableOpacity>
+          <TouchableComponent underlayColor={'transparent'}
+                              onPress={this.onConfirm}
+                              style={styles.buttonAction}>
+            <Text style={styles.buttonText}>{confirmBtnText}</Text>
+          </TouchableComponent>
         </View>
     );
   };
@@ -189,16 +205,32 @@ class DatePicker extends Component {
     );
   };
 
+  renderInput = () => {
+    const { inputStyle, textStyle, iconComponent, TouchableComponent } = this.props;
+    return (
+        <TouchableComponent underlayColor={'transparent'} onPress={() => this.open()}
+        >
+          <View style={[styles.input, inputStyle]}>
+            <Text style={[styles.text, textStyle]}>{this.state.date}</Text>
+            {iconComponent}
+          </View>
+        </TouchableComponent>
+    );
+  };
+
   render () {
     return (
-        <RBSheet
-            ref={ref => {
-              this.RBSheet = ref;
-            }}
-        >
-          {this.renderHeader()}
-          {this.renderBody()}
-        </RBSheet>
+        <View>
+          <RBSheet
+              ref={ref => {
+                this.RBSheet = ref;
+              }}
+          >
+            {this.renderHeader()}
+            {this.renderBody()}
+          </RBSheet>
+          {this.renderInput()}
+        </View>
     );
   }
 }
@@ -206,20 +238,12 @@ class DatePicker extends Component {
 DatePicker.propTypes = {
   minYear: PropTypes.number,
   maxDay: PropTypes.number,
-  maxHour: PropTypes.number,
   maxMonth: PropTypes.number,
-  maxMinute: PropTypes.number,
   maxYear: PropTypes.number,
-  hourInterval: PropTypes.number,
-  minuteInterval: PropTypes.number,
   dayInterval: PropTypes.number,
   monthInterval: PropTypes.number,
-  hourUnit: PropTypes.string,
-  minuteUnit: PropTypes.string,
   dayUnit: PropTypes.string,
   monthUnit: PropTypes.string,
-  selectedHour: PropTypes.string,
-  selectedMinute: PropTypes.string,
   selectedDay: PropTypes.string,
   selectedYear: PropTypes.string,
   itemStyle: PropTypes.object,
@@ -227,36 +251,40 @@ DatePicker.propTypes = {
   textConfirm: PropTypes.string,
   textTitle: PropTypes.string,
   onCancel: PropTypes.func,
-  onConfirm: PropTypes.func
+  onConfirm: PropTypes.func,
+  format: PropTypes.string,
+  inputStyle: PropTypes.object,
+  textStyle: PropTypes.object,
+  iconComponent: PropTypes.element,
+  TouchableComponent: PropTypes.element,
+  date: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date), PropTypes.object]),
+  confirmBtnText: PropTypes.string,
+  cancelBtnText: PropTypes.string
 };
 
 DatePicker.defaultProps = {
   minYear: 1,
   maxDay: 31,
-  maxHour: 23,
-  maxMinute: 59,
   maxMonth: 12,
   maxYear: 9999,
   monthList: monthList,
-  hourInterval: 1,
-  minuteInterval: 1,
   monthInterval: 1,
   yearInterval: 1,
   dayInterval: 1,
-  hourUnit: '',
-  minuteUnit: '',
   dayUnit: '',
   monthUnit: '',
   yearUnit: '',
-  selectedHour: '0',
-  selectedMinute: '00',
-  selectedDay: '1',
-  selectedMonth: '1',
+  selectedDay: '28',
+  selectedMonth: '2',
   selectedYear: '2000',
   itemStyle: {},
-  textCancel: 'Cancel',
-  textConfirm: ' Done ',
-  textTitle: null
+  confirmBtnText: 'Done',
+  cancelBtnText: 'Cancel',
+  textTitle: null,
+  format: 'DD/MM/YYYY',
+  TouchableComponent: TouchableHighlight,
+  date: ''
+
 };
 
 export default DatePicker;

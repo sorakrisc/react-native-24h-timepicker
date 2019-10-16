@@ -1,39 +1,50 @@
-import { StyleSheet } from "react-native";
+import {StyleSheet} from 'react-native';
 
 const styles = StyleSheet.create({
   header: {
     height: 45,
     borderBottomWidth: 1,
-    borderColor: "#ccc",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center"
+    borderColor: '#ccc',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   buttonAction: {
-    height: "100%",
+    height: '100%',
     paddingHorizontal: 20,
-    alignItems: "center",
-    justifyContent: "center"
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonText: {
     fontSize: 18,
-    color: "#006BFF",
-    fontWeight: "400"
+    color: '#006BFF',
+    fontWeight: '400',
   },
   buttonTextCancel: {
-    color: "#666",
-    fontWeight: "400"
+    color: '#666',
+    fontWeight: '400',
   },
   body: {
-    flexDirection: "row"
+    flexDirection: 'row',
+  },
+  input: {
+    borderBottomWidth: 1,
+    borderColor: '#ccc',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
   },
   picker: {
-    flex: 1
+    flex: 1,
   },
   separator: {
-    alignSelf: "center",
-    fontSize: 16
-  }
+    alignSelf: 'center',
+    fontSize: 16,
+  },
+  text: {
+    fontSize: 18,
+  },
 });
 
 export default styles;
