@@ -395,7 +395,6 @@ DatePicker.propTypes = {
   textStyle: PropTypes.object,
   placeholderTextStyle: PropTypes.object,
   iconComponent: PropTypes.element,
-  TouchableComponent: PropTypes.element,
   date: PropTypes.oneOfType(
       [PropTypes.string, PropTypes.instanceOf(Date), PropTypes.object]),
   confirmBtnText: PropTypes.string,
