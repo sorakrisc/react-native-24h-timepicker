@@ -209,25 +209,19 @@ class DatePicker extends Component {
     const maxDate = this._getDate(this.props.maxDate);
     const valueDate = this._getDate(
         `${selectedDay}/${selectedMonth}/${selectedYear}`, 'D/M/YYYY');
-    console.log(minDate);
-    console.log(maxDate);
-    console.log(valueDate);
-    if (valueDate.isBefore(minDate)) {
-      console.log('isbefore');
+    if (this.props.minDate && valueDate.isBefore(minDate)) {
       this.setState({
         selectedDay: minDate.date().toString(),
         selectedMonth: (minDate.month() + 1).toString(),
         selectedYear: minDate.year().toString(),
       });
     } else if (this.props.maxDate && valueDate.isAfter(maxDate)) {
-      console.log('isafter');
       this.setState({
         selectedDay: maxDate.date().toString(),
         selectedMonth: (maxDate.month() + 1).toString(),
         selectedYear: maxDate.year().toString(),
       });
     } else {
-      console.log('between');
       this.setState({selectedDay, selectedMonth, selectedYear});
     }
 
@@ -341,8 +335,6 @@ class DatePicker extends Component {
 
   renderInput = () => {
     const {inputStyle, textStyle, placeholderTextStyle, iconComponent, TouchableComponent} = this.props;
-    console.log('this.props', this.props);
-    console.log('this.state', this.state);
     return (
         <TouchableComponent underlayColor={'transparent'}
                             onPress={() => this.open()}
