@@ -1,6 +1,6 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import { Picker, Text, TouchableOpacity, View } from 'react-native';
+import {Picker, Text, TouchableOpacity, View} from 'react-native';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import styles from './styles';
 
@@ -16,23 +16,57 @@ const monthList = [
   'September',
   'October',
   'November',
-  'December'
+  'December',
 ];
+// const monthsWith31Days = ['1', '3', '5', '7', '8', '10', '12'];
+// const monthsWith30Days = ['4', '6', '9', '11'];
 
 class DatePicker extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props);
-    const { selectedHour, selectedMinute } = props;
-    this.state = { selectedHour, selectedMinute };
+    const {selectedHour, selectedMinute, selectedDay, selectedMonth, selectedYear} = props;
+    this.state = {
+      selectedHour,
+      selectedMinute,
+      selectedDay,
+      selectedMonth,
+      selectedYear,
+    };
   }
 
+  selectedMonthHaveDay = (day) => {
+    //every month have at least 28 days
+    if (day <= 28) {
+      return true;
+    } else {
+      //handle case for day 28,29,30,31
+      const {selectedMonth, selectedYear} = this.state;
+      return this.isValid(day, parseInt(selectedMonth), parseInt(selectedYear));
+    }
+  };
+  daysInMonth = (m, y) => { // m is 0 indexed: 0-11
+    switch (m) {
+      case 1 :
+        return (y % 4 == 0 && y % 100) || y % 400 == 0 ? 29 : 28;
+      case 8 :
+      case 3 :
+      case 5 :
+      case 10 :
+        return 30;
+      default :
+        return 31;
+    }
+  };
+
+  isValid = (d, m, y) => {
+    return m >= 0 && m < 12 && d > 0 && d <= this.daysInMonth(m, y);
+  };
   getYearItems = () => {
     const items = [];
-    const { minYear, maxYear, yearInterval, yearUnit } = this.props;
+    const {minYear, maxYear, yearInterval, yearUnit} = this.props;
     const interval = maxYear / yearInterval;
     for (let i = 1; i <= interval; i++) {
-      const value = yearList[i - 1 * yearInterval];
-      console.log('value', value);
+      const value = `${i * yearInterval}`;
       const item = (
           <Picker.Item key={value} value={value}
                        label={value + yearUnit}/>
@@ -43,14 +77,14 @@ class DatePicker extends Component {
   };
   getMonthItems = () => {
     const items = [];
-    const { maxMonth, monthInterval, monthUnit } = this.props;
+    const {maxMonth, monthInterval, monthUnit} = this.props;
     const interval = maxMonth / monthInterval;
-    for (let i = 1; i <= interval; i++) {
-      const value = monthList[i - 1 * monthInterval];
-      console.log('value', value);
+    for (let i = 0; i < interval; i++) {
+      const value = i * monthInterval;
+      const label = monthList[value];
       const item = (
-          <Picker.Item key={value} value={value}
-                       label={value + monthUnit}/>
+          <Picker.Item key={label} value={i.toString()}
+                       label={label + monthUnit}/>
       );
       items.push(item);
     }
@@ -58,79 +92,36 @@ class DatePicker extends Component {
   };
   getDayItems = () => {
     const items = [];
-    const { maxDay, dayInterval, dayUnit } = this.props;
+    const {maxDay, dayInterval, dayUnit} = this.props;
     const interval = maxDay / dayInterval;
     for (let i = 1; i <= interval; i++) {
-      const value = `${i * dayInterval}`;
-      const item = (
-          <Picker.Item key={value} value={value}
-                       label={value + dayUnit}/>
-      );
-      items.push(item);
-    }
-    return items;
-  };
-  getHourItems = () => {
-    const items = [];
-    const { maxHour, hourInterval, hourUnit } = this.props;
-    const interval = maxHour / hourInterval;
-    for (let i = 0; i <= interval; i++) {
-      const value = `${i * hourInterval}`;
-      const new_value = value < 10 ? `0${value}` : `${value}`;
-      const item = (
-          <Picker.Item key={value} value={new_value}
-                       label={new_value + hourUnit}/>
-      );
-      items.push(item);
-    }
-    return items;
-  };
-
-  getMinuteItems = () => {
-    console.log('getMinuteItems');
-    const items = [];
-    const { maxMinute, minuteInterval, minuteUnit } = this.props;
-    const interval = maxMinute / minuteInterval;
-    for (let i = 0; i <= interval; i++) {
-      const value = i * minuteInterval;
-      const new_value = value < 10 ? `0${value}` : `${value}`;
-      const item = (
-          <Picker.Item
-              key={value}
-              value={new_value}
-              label={new_value + minuteUnit}
-          />
-      );
-      items.push(item);
-    }
-    if (this.props.extraMinuteItems) {
-      const extra = this.props.extraMinuteItems(this.state.selectedHour,
-          this.state.selectedMinute);
-      if (extra) {
-        extra.map(minuteItem => {
-          items.push(minuteItem);
-        });
+      if (this.selectedMonthHaveDay(i)) {
+        const value = `${i * dayInterval}`;
+        const item = (
+            <Picker.Item key={value} value={value}
+                         label={value + dayUnit}/>
+        );
+        items.push(item);
       }
     }
-
     return items;
   };
 
-  onValueChange = (selectedHour, selectedMinute) => {
+  onValueChange = (selectedDay, selectedMonth, selectedYear) => {
     let items = [];
-    this.setState({ selectedHour, selectedMinute });
+    this.setState({selectedDay, selectedMonth, selectedYear});
   };
 
   onCancel = () => {
     if (typeof this.props.onCancel === 'function') {
-      const { selectedHour, selectedMinute } = this.state;
+      const {selectedHour, selectedMinute} = this.state;
       this.props.onCancel(selectedHour, selectedMinute);
     }
   };
 
   onConfirm = () => {
     if (typeof this.props.onConfirm === 'function') {
-      const { selectedHour, selectedMinute } = this.state;
+      const {selectedHour, selectedMinute} = this.state;
       this.props.onConfirm(selectedHour, selectedMinute);
     }
   };
@@ -144,7 +135,7 @@ class DatePicker extends Component {
   };
 
   renderHeader = () => {
-    const { textCancel, textConfirm, textTitle } = this.props;
+    const {textCancel, textConfirm, textTitle} = this.props;
     return (
         <View style={styles.header}>
           <TouchableOpacity onPress={this.onCancel} style={styles.buttonAction}>
@@ -156,7 +147,7 @@ class DatePicker extends Component {
           <View style={styles.buttonAction}>
             <Text style={[
               styles.buttonText,
-              { color: 'black', fontWeight: '500' }]}>{textTitle}</Text>
+              {color: 'black', fontWeight: '500'}]}>{textTitle}</Text>
           </View>}
           <TouchableOpacity onPress={this.onConfirm}
                             style={styles.buttonAction}>
@@ -167,7 +158,7 @@ class DatePicker extends Component {
   };
 
   renderBody = () => {
-    const { selectedDay, selectedMonth, sleectedYear } = this.state;
+    const {selectedDay, selectedMonth, selectedYear} = this.state;
 
     return (
         <View style={styles.body}>
@@ -176,7 +167,7 @@ class DatePicker extends Component {
               style={styles.picker}
               itemStyle={this.props.itemStyle}
               onValueChange={itemValue =>
-                  this.onValueChange(itemValue, selectedDay)
+                  this.onValueChange(itemValue, selectedMonth, selectedYear)
               }
           >
             {this.getDayItems()}
@@ -186,7 +177,7 @@ class DatePicker extends Component {
               style={styles.picker}
               itemStyle={this.props.itemStyle}
               onValueChange={itemValue =>
-                  this.onValueChange(itemValue, selectedMonth)
+                  this.onValueChange(selectedDay, itemValue, selectedYear)
               }
           >
             {this.getMonthItems()}
@@ -196,7 +187,7 @@ class DatePicker extends Component {
               style={styles.picker}
               itemStyle={this.props.itemStyle}
               onValueChange={itemValue =>
-                  this.onValueChange(itemValue, selectedYear)
+                  this.onValueChange(selectedDay, selectedMonth, itemValue)
               }
           >
             {this.getYearItems()}
@@ -205,7 +196,7 @@ class DatePicker extends Component {
     );
   };
 
-  render () {
+  render() {
     return (
         <RBSheet
             ref={ref => {
@@ -243,7 +234,7 @@ DatePicker.propTypes = {
   textConfirm: PropTypes.string,
   textTitle: PropTypes.string,
   onCancel: PropTypes.func,
-  onConfirm: PropTypes.func
+  onConfirm: PropTypes.func,
 };
 
 DatePicker.defaultProps = {
@@ -272,7 +263,7 @@ DatePicker.defaultProps = {
   itemStyle: {},
   textCancel: 'Cancel',
   textConfirm: ' Done ',
-  textTitle: null
+  textTitle: null,
 };
 
 export default DatePicker;
