@@ -26,6 +26,7 @@ class DatePicker extends Component {
   constructor(props) {
     super(props);
     const {selectedDay, selectedMonth, selectedYear, date} = props;
+    // const date = this.props.date ;
     const parsedDate = this._getDate(date);
     this.state = {
       selectedDay: parsedDate.date().toString(),
@@ -35,14 +36,14 @@ class DatePicker extends Component {
     };
   }
 
-  _getDate(date = this.props.date) {
-    const {minDate, maxDate, format} = this.props;
+  _getDate(date = this.props.date, format = this.props.format) {
+    const {minDate, maxDate} = this.props;
 
     // date默认值
     if (!date) {
-      let now = new Date();
+      let now = Moment();
       if (minDate) {
-        let _minDate = this.getDate(minDate);
+        let _minDate = this._getDate(minDate);
 
         if (now < _minDate) {
           return _minDate;
@@ -50,7 +51,7 @@ class DatePicker extends Component {
       }
 
       if (maxDate) {
-        let _maxDate = this.getDate(maxDate);
+        let _maxDate = this._getDate(maxDate);
 
         if (now > _maxDate) {
           return _maxDate;
@@ -207,20 +208,26 @@ class DatePicker extends Component {
     const minDate = this._getDate(this.props.minDate);
     const maxDate = this._getDate(this.props.maxDate);
     const valueDate = this._getDate(
-        `${selectedDay}/${selectedMonth}/${selectedYear}`);
-    if (valueDate < minDate) {
+        `${selectedDay}/${selectedMonth}/${selectedYear}`, 'D/M/YYYY');
+    console.log(minDate);
+    console.log(maxDate);
+    console.log(valueDate);
+    if (valueDate.isBefore(minDate)) {
+      console.log('isbefore');
       this.setState({
         selectedDay: minDate.date().toString(),
         selectedMonth: (minDate.month() + 1).toString(),
         selectedYear: minDate.year().toString(),
       });
-    } else if (valueDate > maxDate) {
+    } else if (this.props.maxDate && valueDate.isAfter(maxDate)) {
+      console.log('isafter');
       this.setState({
         selectedDay: maxDate.date().toString(),
         selectedMonth: (maxDate.month() + 1).toString(),
         selectedYear: maxDate.year().toString(),
       });
     } else {
+      console.log('between');
       this.setState({selectedDay, selectedMonth, selectedYear});
     }
 
@@ -258,7 +265,7 @@ class DatePicker extends Component {
   };
 
   open = () => {
-    const parsedDate = this._getDate(this.state.date);
+    const parsedDate = this._getDate(this.props.date);
     this.setState({
       selectedDay: parsedDate.date().toString(),
       selectedMonth: (parsedDate.month() + 1).toString(),
@@ -333,13 +340,20 @@ class DatePicker extends Component {
   };
 
   renderInput = () => {
-    const {inputStyle, textStyle, iconComponent, TouchableComponent} = this.props;
+    const {inputStyle, textStyle, placeholderTextStyle, iconComponent, TouchableComponent} = this.props;
+    console.log('this.props', this.props);
+    console.log('this.state', this.state);
     return (
         <TouchableComponent underlayColor={'transparent'}
                             onPress={() => this.open()}
         >
           <View style={[styles.input, inputStyle]}>
-            <Text style={[styles.text, textStyle]}>{this.state.date}</Text>
+            {this.props.date && this.props.date.length > 0 ?
+                <Text style={[styles.text, textStyle]}>{this.props.date}</Text>
+                :
+                <Text style={[
+                  styles.placeholderText,
+                  placeholderTextStyle]}>{this.props.placeholder}</Text>}
             {iconComponent}
           </View>
         </TouchableComponent>
@@ -387,12 +401,14 @@ DatePicker.propTypes = {
   format: PropTypes.string,
   inputStyle: PropTypes.object,
   textStyle: PropTypes.object,
+  placeholderTextStyle: PropTypes.object,
   iconComponent: PropTypes.element,
   TouchableComponent: PropTypes.element,
   date: PropTypes.oneOfType(
       [PropTypes.string, PropTypes.instanceOf(Date), PropTypes.object]),
   confirmBtnText: PropTypes.string,
   cancelBtnText: PropTypes.string,
+  placeholder: PropTypes.string,
 };
 
 DatePicker.defaultProps = {
@@ -419,6 +435,7 @@ DatePicker.defaultProps = {
   format: 'DD/MM/YYYY',
   TouchableComponent: TouchableHighlight,
   date: '',
+  placeholder: '',
 
 };
 

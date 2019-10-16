@@ -38,6 +38,10 @@ const styles = StyleSheet.create({
   picker: {
     flex: 1,
   },
+  placeholderText: {
+    color: '#c9c9c9',
+    fontSize: 18,
+  },
   separator: {
     alignSelf: 'center',
     fontSize: 16,
