@@ -1,9 +1,9 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {Picker, Text, TouchableHighlight, View} from 'react-native';
-import RBSheet from 'react-native-raw-bottom-sheet';
 import styles from './styles';
 import Moment from 'moment';
+import RBSheet from 'react-native-raw-bottom-sheet';
 
 const monthList = [
   'January',
@@ -26,7 +26,59 @@ class DatePicker extends Component {
   constructor(props) {
     super(props);
     const {selectedDay, selectedMonth, selectedYear, date} = props;
-    this.state = {selectedDay, selectedMonth, selectedYear, date};
+    const parsedDate = this._getDate(date);
+    this.state = {
+      selectedDay: parsedDate.date().toString(),
+      selectedMonth: (parsedDate.month() + 1).toString(),
+      selectedYear: parsedDate.year().toString(),
+      date,
+    };
+  }
+
+  _getDate(date = this.props.date) {
+    const {minDate, maxDate, format} = this.props;
+
+    // date默认值
+    if (!date) {
+      let now = new Date();
+      if (minDate) {
+        let _minDate = this.getDate(minDate);
+
+        if (now < _minDate) {
+          return _minDate;
+        }
+      }
+
+      if (maxDate) {
+        let _maxDate = this.getDate(maxDate);
+
+        if (now > _maxDate) {
+          return _maxDate;
+        }
+      }
+
+      return now;
+    }
+
+    if (date instanceof Date) {
+      return date;
+    }
+
+    return Moment(date, format);
+  }
+
+  _getDateStr(date = this.props.date) {
+    const {mode, format = FORMATS[mode]} = this.props;
+
+    const dateInstance = date instanceof Date
+        ? date
+        : this.getDate(date);
+
+    if (typeof this.props.getDateStr === 'function') {
+      return this.props.getDateStr(dateInstance);
+    }
+
+    return Moment(dateInstance).format(format);
   }
 
   selectedMonthHaveDay = (day) => {
@@ -57,11 +109,57 @@ class DatePicker extends Component {
   isValid = (d, m, y) => {
     return m >= 1 && m < 13 && d > 0 && d <= this.daysInMonth(m, y);
   };
+  getMinDate = (unitName) => {
+    const {minDate} = this.props;
+    if (minDate) {
+      const dateMinDate = Moment(minDate, 'DDMYYYY');
+      switch (unitName) {
+        case 'Day':
+          return dateMinDate.day();
+        case 'Month':
+          return dateMinDate.month() + 1;
+        case 'Year':
+          const min = dateMinDate.year();
+          this.props['min' + unitName] = min;
+          return min;
+      }
+      return null;
+      // this.props['min' + unitName] = minUnitName;
+      // return minUnitName;
+    } else {
+      return this.props['min' + unitName];
+    }
+
+  };
+
+  getMaxDate = (unitName) => {
+    const {maxDate} = this.props;
+    if (maxDate) {
+      const dateMaxDate = Moment(maxDate, 'DDMYYYY');
+      switch (unitName) {
+        case 'Day':
+          return dateMaxDate.day();
+        case 'Month':
+          return dateMaxDate.month() + 1;
+        case 'Year':
+          const max = dateMaxDate.year();
+          this.props['max' + unitName] = max;
+          return max;
+      }
+      return null;
+    } else {
+      return this.props['max' + unitName];
+    }
+  };
+
   getYearItems = () => {
     const items = [];
-    const {minYear, maxYear, yearInterval, yearUnit} = this.props;
+    const {yearInterval, yearUnit} = this.props;
+    const minYear = this.getMinDate('Year');
+    const maxYear = this.getMaxDate('Year');
     const interval = maxYear / yearInterval;
-    for (let i = 1; i <= interval; i++) {
+
+    for (let i = minYear; i <= interval; i++) {
       const value = `${i * yearInterval}`;
       const item = (
           <Picker.Item key={value} value={value}
@@ -73,9 +171,10 @@ class DatePicker extends Component {
   };
   getMonthItems = () => {
     const items = [];
-    const {maxMonth, monthInterval, monthUnit} = this.props;
+    const {minMonth, maxMonth, monthInterval, monthUnit} = this.props;
     const interval = maxMonth / monthInterval;
-    for (let i = 1; i <= interval; i++) {
+
+    for (let i = minMonth; i <= interval; i++) {
       const monthIndex = (i - 1) * monthInterval;
       const value = monthList[monthIndex];
       const item = (
@@ -88,9 +187,9 @@ class DatePicker extends Component {
   };
   getDayItems = () => {
     const items = [];
-    const {maxDay, dayInterval, dayUnit} = this.props;
+    const {minDay, maxDay, dayInterval, dayUnit} = this.props;
     const interval = maxDay / dayInterval;
-    for (let i = 1; i <= interval; i++) {
+    for (let i = minDay; i <= interval; i++) {
       if (this.selectedMonthHaveDay(i)) {
         const value = `${i * dayInterval}`;
         const item = (
@@ -105,7 +204,26 @@ class DatePicker extends Component {
 
   onValueChange = (selectedDay, selectedMonth, selectedYear) => {
     let items = [];
-    this.setState({selectedDay, selectedMonth, selectedYear});
+    const minDate = this._getDate(this.props.minDate);
+    const maxDate = this._getDate(this.props.maxDate);
+    const valueDate = this._getDate(
+        `${selectedDay}/${selectedMonth}/${selectedYear}`);
+    if (valueDate < minDate) {
+      this.setState({
+        selectedDay: minDate.date().toString(),
+        selectedMonth: (minDate.month() + 1).toString(),
+        selectedYear: minDate.year().toString(),
+      });
+    } else if (valueDate > maxDate) {
+      this.setState({
+        selectedDay: maxDate.date().toString(),
+        selectedMonth: (maxDate.month() + 1).toString(),
+        selectedYear: maxDate.year().toString(),
+      });
+    } else {
+      this.setState({selectedDay, selectedMonth, selectedYear});
+    }
+
   };
 
   getDate = () => {
@@ -140,6 +258,12 @@ class DatePicker extends Component {
   };
 
   open = () => {
+    const parsedDate = this._getDate(this.state.date);
+    this.setState({
+      selectedDay: parsedDate.date().toString(),
+      selectedMonth: (parsedDate.month() + 1).toString(),
+      selectedYear: parsedDate.year().toString(),
+    });
     this.RBSheet.open();
   };
 
@@ -240,7 +364,11 @@ class DatePicker extends Component {
 }
 
 DatePicker.propTypes = {
+  minDate: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
+  maxDate: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
   minYear: PropTypes.number,
+  minMonth: PropTypes.number,
+  minDay: PropTypes.number,
   maxDay: PropTypes.number,
   maxMonth: PropTypes.number,
   maxYear: PropTypes.number,
@@ -269,6 +397,8 @@ DatePicker.propTypes = {
 
 DatePicker.defaultProps = {
   minYear: 1,
+  minMonth: 1,
+  minDay: 1,
   maxDay: 31,
   maxMonth: 12,
   maxYear: 9999,
