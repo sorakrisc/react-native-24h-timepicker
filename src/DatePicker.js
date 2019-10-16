@@ -1,6 +1,6 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import { Picker, Text, TouchableHighlight, View } from 'react-native';
+import {Picker, Text, TouchableHighlight, View} from 'react-native';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import styles from './styles';
 import Moment from 'moment';
@@ -17,16 +17,16 @@ const monthList = [
   'September',
   'October',
   'November',
-  'December'
+  'December',
 ];
 // const monthsWith31Days = ['1', '3', '5', '7', '8', '10', '12'];
 // const monthsWith30Days = ['4', '6', '9', '11'];
 
 class DatePicker extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props);
-    const { selectedDay, selectedMonth, selectedYear, date } = props;
-    this.state = { selectedDay, selectedMonth, selectedYear, date };
+    const {selectedDay, selectedMonth, selectedYear, date} = props;
+    this.state = {selectedDay, selectedMonth, selectedYear, date};
   }
 
   selectedMonthHaveDay = (day) => {
@@ -35,7 +35,7 @@ class DatePicker extends Component {
       return true;
     } else {
       //handle case for day 28,29,30,31
-      const { selectedMonth, selectedYear } = this.state;
+      const {selectedMonth, selectedYear} = this.state;
       return this.isValid(day, parseInt(selectedMonth), parseInt(selectedYear));
     }
 
@@ -59,7 +59,7 @@ class DatePicker extends Component {
   };
   getYearItems = () => {
     const items = [];
-    const { minYear, maxYear, yearInterval, yearUnit } = this.props;
+    const {minYear, maxYear, yearInterval, yearUnit} = this.props;
     const interval = maxYear / yearInterval;
     for (let i = 1; i <= interval; i++) {
       const value = `${i * yearInterval}`;
@@ -73,7 +73,7 @@ class DatePicker extends Component {
   };
   getMonthItems = () => {
     const items = [];
-    const { maxMonth, monthInterval, monthUnit } = this.props;
+    const {maxMonth, monthInterval, monthUnit} = this.props;
     const interval = maxMonth / monthInterval;
     for (let i = 1; i <= interval; i++) {
       const monthIndex = (i - 1) * monthInterval;
@@ -88,7 +88,7 @@ class DatePicker extends Component {
   };
   getDayItems = () => {
     const items = [];
-    const { maxDay, dayInterval, dayUnit } = this.props;
+    const {maxDay, dayInterval, dayUnit} = this.props;
     const interval = maxDay / dayInterval;
     for (let i = 1; i <= interval; i++) {
       if (this.selectedMonthHaveDay(i)) {
@@ -105,12 +105,13 @@ class DatePicker extends Component {
 
   onValueChange = (selectedDay, selectedMonth, selectedYear) => {
     let items = [];
-    this.setState({ selectedDay, selectedMonth, selectedYear });
+    this.setState({selectedDay, selectedMonth, selectedYear});
   };
 
   getDate = () => {
-    const { selectedDay, selectedMonth, selectedYear } = this.state;
-    return Moment(selectedDay + '/' + selectedMonth + '/' + selectedYear, 'DD/MM/YYYY').format(this.props.format);
+    const {selectedDay, selectedMonth, selectedYear} = this.state;
+    return Moment(selectedDay + '/' + selectedMonth + '/' + selectedYear,
+        'DD/MM/YYYY').format(this.props.format);
   };
 
   onCancel = () => {
@@ -122,7 +123,7 @@ class DatePicker extends Component {
 
   onConfirm = () => {
     const date = this.getDate();
-    this.setState({ date }, () => {
+    this.setState({date}, () => {
       if (typeof this.props.onConfirm === 'function') {
         this.props.onConfirm(date);
       }
@@ -143,10 +144,12 @@ class DatePicker extends Component {
   };
 
   renderHeader = () => {
-    const { confirmBtnText, cancelBtnText, textTitle, TouchableComponent } = this.props;
+    const {confirmBtnText, cancelBtnText, textTitle, TouchableComponent} = this.props;
     return (
         <View style={styles.header}>
-          <TouchableComponent underlayColor={'transparent'} onPress={this.onCancel} style={styles.buttonAction}>
+          <TouchableComponent underlayColor={'transparent'}
+                              onPress={this.onCancel}
+                              style={styles.buttonAction}>
             <Text style={[styles.buttonText]}>
               {cancelBtnText}
             </Text>
@@ -155,7 +158,7 @@ class DatePicker extends Component {
           <View style={styles.buttonAction}>
             <Text style={[
               styles.buttonText,
-              { color: 'black', fontWeight: '500' }]}>{textTitle}</Text>
+              {color: 'black', fontWeight: '500'}]}>{textTitle}</Text>
           </View>}
           <TouchableComponent underlayColor={'transparent'}
                               onPress={this.onConfirm}
@@ -167,7 +170,7 @@ class DatePicker extends Component {
   };
 
   renderBody = () => {
-    const { selectedDay, selectedMonth, selectedYear } = this.state;
+    const {selectedDay, selectedMonth, selectedYear} = this.state;
 
     return (
         <View style={styles.body}>
@@ -206,9 +209,10 @@ class DatePicker extends Component {
   };
 
   renderInput = () => {
-    const { inputStyle, textStyle, iconComponent, TouchableComponent } = this.props;
+    const {inputStyle, textStyle, iconComponent, TouchableComponent} = this.props;
     return (
-        <TouchableComponent underlayColor={'transparent'} onPress={() => this.open()}
+        <TouchableComponent underlayColor={'transparent'}
+                            onPress={() => this.open()}
         >
           <View style={[styles.input, inputStyle]}>
             <Text style={[styles.text, textStyle]}>{this.state.date}</Text>
@@ -218,7 +222,7 @@ class DatePicker extends Component {
     );
   };
 
-  render () {
+  render() {
     return (
         <View>
           <RBSheet
@@ -257,9 +261,10 @@ DatePicker.propTypes = {
   textStyle: PropTypes.object,
   iconComponent: PropTypes.element,
   TouchableComponent: PropTypes.element,
-  date: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date), PropTypes.object]),
+  date: PropTypes.oneOfType(
+      [PropTypes.string, PropTypes.instanceOf(Date), PropTypes.object]),
   confirmBtnText: PropTypes.string,
-  cancelBtnText: PropTypes.string
+  cancelBtnText: PropTypes.string,
 };
 
 DatePicker.defaultProps = {
@@ -283,7 +288,7 @@ DatePicker.defaultProps = {
   textTitle: null,
   format: 'DD/MM/YYYY',
   TouchableComponent: TouchableHighlight,
-  date: ''
+  date: '',
 
 };
 
